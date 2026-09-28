@@ -3,14 +3,20 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
 import { config } from '../config.js';
+import { pgOptions } from './pool.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
 export async function migrate(connectionString = config.DATABASE_ADMIN_URL, log = console.log) {
-  const client = new pg.Client({ connectionString });
+  const client = new pg.Client(pgOptions(connectionString));
   await client.connect();
   try {
     await client.query(`CREATE TABLE IF NOT EXISTS schema_migrations (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())`);
+    // The owner connection must bypass RLS: provisioning and the outbox relay work across tenants.
+    const role = (await client.query(`SELECT current_user AS name, rolbypassrls FROM pg_roles WHERE rolname = current_user`)).rows[0];
+    if (!role?.rolbypassrls) {
+      throw new Error(`DATABASE_ADMIN_URL role "${role?.name}" lacks BYPASSRLS; use the database owner (on Supabase: the "postgres" role).`);
+    }
     // Serialise concurrent deploys.
     await client.query('SELECT pg_advisory_lock(360360)');
     const dir = join(here, 'migrations');

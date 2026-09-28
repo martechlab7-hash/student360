@@ -1,0 +1,53 @@
+# Render Blueprint — Student 360 API (free plan). Create via Render → New → Blueprint → this repo.
+# Free-plan mode: one web service runs the API *and* background jobs in-process (JOB_MODE=inline),
+# so no Redis or separate worker is needed. See docs/DEPLOY.md.
+services:
+  - type: web
+    name: student360-api
+    runtime: docker
+    plan: free
+    region: singapore          # keep in the same region as your Supabase project
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/v1/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JOB_MODE
+        value: inline
+      - key: MIGRATE_ON_START
+        value: "true"
+      - key: SEED_DEMO_ON_START
+        value: "true"
+      - key: SEED_DEMO_PASSWORD      # password for the demo accounts (12+ chars, 3 character classes)
+        sync: false
+      # Supabase → Connect → Connection pooler.
+      # Runtime role, transaction mode (port 6543), user "s360_app.<project-ref>":
+      - key: DATABASE_URL
+        sync: false
+      # Owner role, session mode (port 5432), user "postgres.<project-ref>":
+      - key: DATABASE_ADMIN_URL
+        sync: false
+      # Supabase → Database settings → SSL → download certificate; paste the PEM contents.
+      - key: DATABASE_CA_CERT
+        sync: false
+      - key: DATABASE_SSL
+        value: verify
+      - key: DB_POOL_MAX
+        value: "5"
+      - key: DB_ADMIN_POOL_MAX
+        value: "2"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATA_ENCRYPTION_KEY
+        generateValue: true
+      - key: PLATFORM_ADMIN_TOKEN
+        generateValue: true
+      - key: CORS_ORIGINS            # your Vercel URL, e.g. https://student360.vercel.app
+        sync: false
+      - key: AI_DEFAULT_PROVIDER     # "mock" is free; set "anthropic" + ANTHROPIC_API_KEY for Claude
+        value: mock
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: LOG_LEVEL
+        value: info

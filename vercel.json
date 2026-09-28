@@ -4,6 +4,7 @@
   "buildCommand": "npm run build -w @s360/web",
   "outputDirectory": "apps/web/dist",
   "rewrites": [
+    { "source": "/api/:path*", "destination": "https://student360-api.onrender.com/api/:path*" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

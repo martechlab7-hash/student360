@@ -19,7 +19,7 @@ Profile → Baseline → Skill analysis → Personalised tasks → Action → Ev
 | `packages/core` | Pure, dependency-free domain engines: RBAC, difficulty profiles, ability model, evidence trust, growth scoring, progression (modes, remediation, advanced path), attendance tokens and anomaly detection, workflows, neutral-language guard. 30 unit tests. |
 | `apps/api` | Fastify modular monolith with PostgreSQL row-level security, BullMQ workers, a transactional outbox and a provider-neutral AI gateway. 52 integration tests against real Postgres. |
 | `apps/web` | React app, mobile-first. Homes for student ("Today's Growth"), teacher ("My Students + Actions Required"), parent ("My Child's Progress") and admin ("Institutional Outcomes"), plus the organiser QR screen. |
-| `docs/` | [Architecture](docs/ARCHITECTURE.md), [Security & privacy](docs/SECURITY.md), [Requirement status & roadmap](docs/ROADMAP.md). |
+| `docs/` | [Architecture](docs/ARCHITECTURE.md), [Security & privacy](docs/SECURITY.md), [Requirement status & roadmap](docs/ROADMAP.md), [Free deployment: Supabase + Render + Vercel](docs/DEPLOY.md). |
 
 ## Quick start
 

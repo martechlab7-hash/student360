@@ -17,7 +17,9 @@ import { recalculateStudent } from '../services/growth.js';
 import { newSessionSecret } from '../services/attendance.js';
 import { loadPrincipal, type AuthContext } from '../auth/principal.js';
 
-export const DEMO = { tenant: 'demo-college', password: 'Growth#Demo2026' };
+import { config } from '../config.js';
+
+export const DEMO = { tenant: 'demo-college', password: config.SEED_DEMO_PASSWORD ?? 'Growth#Demo2026' };
 
 async function drain(bus: InlineBus) {
   for (let i = 0; i < 50; i++) {
@@ -206,7 +208,7 @@ export async function seed(log = console.log, reset = process.argv.includes('--r
   });
   await drain(bus);
 
-  log(`\nSeeded tenant "${DEMO.tenant}" (${tenantId}). Log in with institution "${DEMO.tenant}" and password "${DEMO.password}":`);
+  log(`\nSeeded tenant "${DEMO.tenant}" (${tenantId}). Log in with institution "${DEMO.tenant}" and ${config.SEED_DEMO_PASSWORD ? 'SEED_DEMO_PASSWORD' : `password "${DEMO.password}"`}:`);
   log('  admin@demo.edu    — College Admin');
   log('  hod@demo.edu      — HOD, CSE department');
   log('  teacher@demo.edu  — Teacher, sections CSE-A and CSE-B');

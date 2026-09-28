@@ -1,8 +1,18 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { config } from '../config.js';
 
-const key = Buffer.from(config.DATA_ENCRYPTION_KEY, 'base64');
-if (key.length !== 32) throw new Error('DATA_ENCRYPTION_KEY must be 32 bytes (base64)');
+/**
+ * A base64 value that decodes to exactly 32 bytes is used directly; any other secret of at least
+ * 32 characters (e.g. a platform-generated value) is stretched to 32 bytes with SHA-256. The rule is
+ * fixed so a given secret always yields the same key.
+ */
+function deriveKey(secret: string): Buffer {
+  const raw = Buffer.from(secret, 'base64');
+  if (raw.length === 32) return raw;
+  if (secret.length < 32) throw new Error('DATA_ENCRYPTION_KEY must be 32 random bytes (base64) or a secret of at least 32 characters');
+  return createHash('sha256').update(secret, 'utf8').digest();
+}
+const key = deriveKey(config.DATA_ENCRYPTION_KEY);
 
 /** AES-256-GCM field encryption for secrets stored in the database. Format: v1.iv.tag.ciphertext */
 export function encrypt(plain: string): string {

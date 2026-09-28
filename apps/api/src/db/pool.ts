@@ -6,8 +6,23 @@ pg.types.setTypeParser(1700, (v) => (v === null ? null : Number(v)));
 // int8 → number (counts)
 pg.types.setTypeParser(20, (v) => (v === null ? null : Number(v)));
 
-export const appPool = new pg.Pool({ connectionString: config.DATABASE_URL, max: 20 });
-export const adminPool = new pg.Pool({ connectionString: config.DATABASE_ADMIN_URL, max: 5 });
+/** Connection options with explicit TLS handling (see DATABASE_CA_CERT / DATABASE_SSL). */
+export function pgOptions(connectionString: string): pg.ClientConfig {
+  const mode = config.DATABASE_CA_CERT ? 'verify' : config.DATABASE_SSL;
+  if (mode === 'off') return { connectionString };
+  // An sslmode in the URL would override the ssl object below, so TLS is configured here only.
+  const url = new URL(connectionString);
+  for (const k of ['sslmode', 'sslrootcert', 'uselibpqcompat']) url.searchParams.delete(k);
+  return {
+    connectionString: url.toString(),
+    ssl: mode === 'verify'
+      ? { ca: config.DATABASE_CA_CERT?.replace(/\\n/g, '\n'), rejectUnauthorized: true }
+      : { rejectUnauthorized: false },
+  };
+}
+
+export const appPool = new pg.Pool({ ...pgOptions(config.DATABASE_URL), max: config.DB_POOL_MAX });
+export const adminPool = new pg.Pool({ ...pgOptions(config.DATABASE_ADMIN_URL), max: config.DB_ADMIN_POOL_MAX });
 
 export type Db = pg.PoolClient;
 

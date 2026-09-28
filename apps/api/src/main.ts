@@ -4,6 +4,10 @@ import { buildApp } from './http/app.js';
 import { BullBus, InlineBus } from './jobs/bus.js';
 import { handlers } from './jobs/handlers.js';
 import { relayOutbox } from './jobs/relay.js';
+import { migrate } from './db/migrate.js';
+import { seed } from './db/seed.js';
+
+if (config.MIGRATE_ON_START) await migrate();
 
 const bus = config.JOB_MODE === 'inline' ? new InlineBus(() => handlers) : new BullBus();
 const app = await buildApp({ bus });
@@ -20,6 +24,12 @@ if (bus instanceof InlineBus) {
 }
 
 await app.listen({ port: config.PORT, host: config.HOST });
+
+// The demo seed can take a while against a remote database; run it after the server is up so the
+// platform health check passes. It is a no-op when the demo tenant already exists.
+if (config.SEED_DEMO_ON_START) {
+  seed((m) => app.log.info(m)).catch((e) => app.log.error({ err: e }, 'demo seed failed'));
+}
 
 for (const sig of ['SIGINT', 'SIGTERM'] as const) {
   process.on(sig, async () => {

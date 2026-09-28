@@ -8,6 +8,19 @@ const Env = z.object({
   DATABASE_URL: z.string().default('postgres://s360_app:s360_app_dev@localhost:5432/student360'),
   /** Owner connection — migrations, tenant provisioning, outbox relay only. */
   DATABASE_ADMIN_URL: z.string().default('postgres://s360_owner:s360_owner_dev@localhost:5432/student360'),
+  /**
+   * TLS to PostgreSQL. With DATABASE_CA_CERT (PEM, e.g. Supabase's downloadable CA) the server
+   * certificate is verified. DATABASE_SSL=no-verify encrypts without verification (last resort).
+   */
+  DATABASE_CA_CERT: z.string().optional(),
+  DATABASE_SSL: z.enum(['off', 'verify', 'no-verify']).default('off'),
+  DB_POOL_MAX: z.coerce.number().int().positive().default(10),
+  DB_ADMIN_POOL_MAX: z.coerce.number().int().positive().default(3),
+  /** Apply pending migrations at startup (advisory-locked; safe with several instances). */
+  MIGRATE_ON_START: z.stringbool().default(false),
+  /** Create the demo tenant at startup if it does not exist yet. */
+  SEED_DEMO_ON_START: z.stringbool().default(false),
+  SEED_DEMO_PASSWORD: z.string().optional(),
   REDIS_URL: z.string().default('redis://localhost:6379'),
   /** 'bullmq' in production; 'inline' runs jobs in-process (tests / single-node dev). */
   JOB_MODE: z.enum(['bullmq', 'inline']).default('bullmq'),
