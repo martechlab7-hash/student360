@@ -1,0 +1,20 @@
+{
+  "name": "student360",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Student 360 — AI-powered student growth & development OS (multi-tenant SaaS)",
+  "workspaces": ["packages/*", "apps/*"],
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "npm run build -w @s360/core && npm run build -w @s360/api && npm run build -w @s360/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:unit": "npm run test -w @s360/core",
+    "test:api": "npm run test -w @s360/api",
+    "db:migrate": "npm run db:migrate -w @s360/api",
+    "db:seed": "npm run db:seed -w @s360/api",
+    "dev:api": "npm run dev -w @s360/api",
+    "dev:worker": "npm run worker -w @s360/api",
+    "dev:web": "npm run dev -w @s360/web"
+  }
+}
