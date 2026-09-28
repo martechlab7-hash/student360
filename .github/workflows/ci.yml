@@ -1,0 +1,32 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: postgres }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - name: Create database roles and test database
+        env: { PGPASSWORD: postgres }
+        run: |
+          psql -h localhost -U postgres -f apps/api/src/db/bootstrap.sql
+          psql -h localhost -U postgres -c "CREATE DATABASE student360_test OWNER s360_owner"
+          psql -h localhost -U postgres -d student360_test -c "CREATE EXTENSION pgcrypto; CREATE EXTENSION citext;"
+      - run: npm ci
+      - run: npm run build -w @s360/core
+      - run: npm run typecheck
+      - run: npm run test -w @s360/core
+      - run: npm run test -w @s360/api
+      - run: npm run build -w @s360/web

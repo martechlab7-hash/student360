@@ -33,7 +33,8 @@ export async function parentRoutes(app: FastifyInstance) {
       `SELECT e.name, e.category, r.role FROM event_registrations r JOIN events e ON e.id = r.event_id
         WHERE r.student_id = $1 AND r.status = 'registered' ORDER BY r.created_at DESC LIMIT 10`, [id]);
     const verifiedAchievements = await many(db,
-      `SELECT title, activity_type, occurred_at FROM evidence WHERE student_id = $1 AND verification_level = 'VERIFIED' AND activity_ref_type IS NULL
+      `SELECT title, activity_type, occurred_at FROM evidence WHERE student_id = $1 AND verification_level = 'VERIFIED'
+        AND activity_type IN ('certification','competition','volunteering','leadership','sports','cultural','research','internship','course','project')
         ORDER BY occurred_at DESC LIMIT 10`, [id]);
     const recs = await many(db, `SELECT title, rationale FROM recommendations WHERE student_id = $1 AND status = 'open' AND source IN ('rule','teacher') ORDER BY priority DESC LIMIT 3`, [id]);
     await audit(db, actor(req), { action: 'guardian.view_summary', entityType: 'student', entityId: id });
